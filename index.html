@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bill Calculation</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      padding: 10px;
+      background-color: #f4f4f9;
+    }
+    h1 {
+      text-align: center;
+    }
+    .bill-container {
+      max-width: 600px;
+      margin: 0 auto;
+      background-color: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    .item {
+      margin: 10px 0;
+    }
+    .total {
+      font-size: 20px;
+      font-weight: bold;
+      text-align: right;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="bill-container">
+    <h1>Bill Calculation</h1>
+    <div id="billItemsList"></div>
+    <div class="total">Total Bill: <span id="totalBillAmount">0.00</span></div>
+  </div>
+
+  <script>
+    const menu = [
+      { id: 1, itemName: "Burger", rate: 5.99, taxes: [{ isInPercent: true, rate: 10 }] },
+      { id: 2, itemName: "Fries", rate: 2.49, taxes: [{ isInPercent: true, rate: 5 }] },
+      { id: 3, itemName: "Soda", rate: 1.99, taxes: [{ isInPercent: true, rate: 8 }] },
+    ];
+
+    const bill = {
+      billItems: [
+        { id: 1, quantity: 2, discount: { isInPercent: true, rate: 10 } },
+        { id: 2, quantity: 1, discount: { isInPercent: false, rate: 0.5 } },
+        { id: 3, quantity: 3, discount: { isInPercent: true, rate: 5 } },
+      ]
+    };
+
+    function calculateBill(bill) {
+      let totalBillAmount = 0;
+      let billItems = [];
+
+      bill.billItems.forEach(billItem => {
+        const menuItem = menu.find(item => item.id === billItem.id);
+
+        if (menuItem) {
+          let basePrice = Math.round(menuItem.rate); 
+          const quantity = billItem.quantity;
+          const discount = billItem.discount;
+
+          const basePriceBeforeDiscount = basePrice;
+          let discountedPrice;
+          if (discount.isInPercent) {
+            discountedPrice = basePrice - (basePrice * (discount.rate / 100));
+          } else {
+            discountedPrice = basePrice - discount.rate;
+          }
+
+          let finalPricePerItem = discountedPrice;
+          menuItem.taxes.forEach(tax => {
+            if (tax.isInPercent) {
+              finalPricePerItem += discountedPrice * (tax.rate / 100);
+            } else {
+              finalPricePerItem += tax.rate;
+            }
+          });
+
+          finalPricePerItem = parseFloat(finalPricePerItem.toFixed(2));
+
+          const itemTotal = parseFloat((finalPricePerItem * quantity).toFixed(2));
+
+          totalBillAmount += itemTotal;
+
+          const itemInfo = `${menuItem.itemName}@${basePriceBeforeDiscount} x ${quantity} = ${itemTotal.toFixed(2)}`;
+          billItems.push(itemInfo);
+        }
+      });
+
+      totalBillAmount = totalBillAmount.toFixed(2);
+
+      return [totalBillAmount, billItems];
+    }
+
+    const [total, items] = calculateBill(bill);
+
+    document.getElementById("totalBillAmount").textContent = total;
+
+    const billItemsList = document.getElementById("billItemsList");
+    items.forEach(item => {
+      const itemDiv = document.createElement("div");
+      itemDiv.classList.add("item");
+      itemDiv.textContent = item;
+      billItemsList.appendChild(itemDiv);
+    });
+  </script>
+
+</body>
+</html>
